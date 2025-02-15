@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -19,28 +19,73 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
+  Select,
 } from '@chakra-ui/react';
 
 interface BatchContentFormProps {
   onSubmit: (data: BatchContentData) => Promise<void>;
 }
 
-export interface BatchContentData {
+interface BatchContentData {
   ideas: string[];
   generateCategories: boolean;
   batchSize: number;
   autoPublish: boolean;
+  aiPlatform: string;
+}
+
+interface APISettings {
+  ai_platforms: {
+    [key: string]: {
+      api_key: string;
+      [key: string]: string;
+    };
+  };
 }
 
 export const BatchContentForm: React.FC<BatchContentFormProps> = ({ onSubmit }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [availablePlatforms, setAvailablePlatforms] = useState<string[]>([]);
   const [formData, setFormData] = useState<BatchContentData>({
     ideas: [],
     generateCategories: true,
     batchSize: 5,
-    autoPublish: true
+    autoPublish: true,
+    aiPlatform: ''
   });
   const toast = useToast();
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/wp-json/wp-postai/v1/settings');
+      const data: APISettings = await response.json();
+
+      // Lọc các platform có API key
+      const platforms = Object.entries(data.ai_platforms)
+        .filter(([_, config]) => config.api_key?.trim())
+        .map(([platform]) => platform);
+
+      setAvailablePlatforms(platforms);
+
+      // Set default platform nếu có
+      if (platforms.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          aiPlatform: platforms[0]
+        }));
+      }
+    } catch (error) {
+      toast({
+        title: 'Error fetching AI platforms',
+        status: 'error',
+        duration: 3000,
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +124,14 @@ export const BatchContentForm: React.FC<BatchContentFormProps> = ({ onSubmit }) 
     setFormData(prev => ({ ...prev, ideas }));
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -88,28 +141,45 @@ export const BatchContentForm: React.FC<BatchContentFormProps> = ({ onSubmit }) 
         <Box as="form" onSubmit={handleSubmit}>
           <VStack spacing={4}>
             <FormControl isRequired>
-              <FormLabel>Content Ideas (one per line)</FormLabel>
+              <FormLabel>Ideas (one per line)</FormLabel>
               <Textarea
-                placeholder="Enter your content ideas here..."
-                size="lg"
-                rows={8}
+                name="ideas"
                 onChange={handleIdeasChange}
+                placeholder="Enter your content ideas..."
+                minH="200px"
               />
-              <FormHelperText>
-                Each line will be treated as a separate content idea
-              </FormHelperText>
+            </FormControl>
+
+            <FormControl isRequired>
+              <FormLabel>AI Platform</FormLabel>
+              <Select
+                name="aiPlatform"
+                value={formData.aiPlatform}
+                onChange={handleChange}
+                isDisabled={!availablePlatforms.length}
+              >
+                {!availablePlatforms.length ? (
+                  <option value="">No AI platforms configured</option>
+                ) : (
+                  availablePlatforms.map(platform => (
+                    <option key={platform} value={platform}>
+                      {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                    </option>
+                  ))
+                )}
+              </Select>
             </FormControl>
 
             <FormControl>
               <FormLabel>Batch Size</FormLabel>
               <NumberInput
-                min={1}
-                max={20}
+                name="batchSize"
                 value={formData.batchSize}
-                onChange={(value) => setFormData(prev => ({
-                  ...prev,
-                  batchSize: parseInt(value)
-                }))}
+                min={1}
+                max={10}
+                onChange={(_, value) => handleChange({
+                  target: { name: 'batchSize', value }
+                } as any)}
               >
                 <NumberInputField />
                 <NumberInputStepper>
@@ -117,47 +187,28 @@ export const BatchContentForm: React.FC<BatchContentFormProps> = ({ onSubmit }) 
                   <NumberDecrementStepper />
                 </NumberInputStepper>
               </NumberInput>
-              <FormHelperText>
-                Number of contents to generate simultaneously
-              </FormHelperText>
             </FormControl>
 
-            <FormControl>
-              <HStack spacing={3}>
-                <Switch
-                  id="auto-publish"
-                  isChecked={formData.autoPublish}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    autoPublish: e.target.checked
-                  }))}
-                />
-                <FormLabel htmlFor="auto-publish" mb="0" flex="1">
-                  Auto Publish
-                </FormLabel>
-              </HStack>
-              <FormHelperText mt={2}>
-                Automatically publish posts after generation
-              </FormHelperText>
+            <FormControl display="flex" alignItems="center">
+              <FormLabel mb="0">Generate Categories</FormLabel>
+              <Switch
+                name="generateCategories"
+                isChecked={formData.generateCategories}
+                onChange={e => handleChange({
+                  target: { name: 'generateCategories', value: e.target.checked }
+                } as any)}
+              />
             </FormControl>
 
-            <FormControl>
-              <HStack spacing={3}>
-                <Switch
-                  id="generate-categories"
-                  isChecked={formData.generateCategories}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    generateCategories: e.target.checked
-                  }))}
-                />
-                <FormLabel htmlFor="generate-categories" mb="0" flex="1">
-                  Generate Categories
-                </FormLabel>
-              </HStack>
-              <FormHelperText mt={2}>
-                AI will suggest relevant categories for each content
-              </FormHelperText>
+            <FormControl display="flex" alignItems="center">
+              <FormLabel mb="0">Auto Publish</FormLabel>
+              <Switch
+                name="autoPublish"
+                isChecked={formData.autoPublish}
+                onChange={e => handleChange({
+                  target: { name: 'autoPublish', value: e.target.checked }
+                } as any)}
+              />
             </FormControl>
 
             <Button
@@ -167,6 +218,7 @@ export const BatchContentForm: React.FC<BatchContentFormProps> = ({ onSubmit }) 
               width="full"
               isLoading={isLoading}
               loadingText="Starting batch..."
+              isDisabled={!formData.aiPlatform || !formData.ideas.length}
             >
               Start Batch Generation
             </Button>

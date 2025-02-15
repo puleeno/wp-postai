@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -29,36 +29,92 @@ interface ContentBuilderData {
   generateCategories: boolean;
 }
 
-interface ApiError {
-  message: string;
+interface APISettings {
+  ai_platforms: {
+    [key: string]: {
+      api_key: string;
+      [key: string]: string;
+    };
+  };
+  image_sources: {
+    [key: string]: {
+      access_key?: string;
+      api_key?: string;
+      [key: string]: string | undefined;
+    };
+  };
 }
 
 export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [availablePlatforms, setAvailablePlatforms] = useState<string[]>([]);
+  const [availableImageSources, setAvailableImageSources] = useState<string[]>([]);
   const [formData, setFormData] = useState<ContentBuilderData>({
     idea: '',
-    aiPlatform: 'gemini',
-    imageSource: 'unsplash',
+    aiPlatform: '',
+    imageSource: '',
     generateCategories: true
   });
   const toast = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  useEffect(() => {
+    fetchSettings();
+  }, []);
 
+  const fetchSettings = async () => {
     try {
-      await onSubmit(formData);
+      const response = await fetch('/wp-json/wp-postai/v1/settings');
+      const data: APISettings = await response.json();
+
+      // Lọc AI platforms có API key
+      const platforms = Object.entries(data.ai_platforms)
+        .filter(([_, config]) => config.api_key?.trim())
+        .map(([platform]) => platform);
+
+      // Lọc image sources có key
+      const imageSources = Object.entries(data.image_sources)
+        .filter(([_, config]) => {
+          return config.access_key?.trim() || config.api_key?.trim();
+        })
+        .map(([source]) => source);
+
+      setAvailablePlatforms(platforms);
+      setAvailableImageSources(imageSources);
+
+      // Set default values nếu có
+      setFormData(prev => ({
+        ...prev,
+        aiPlatform: platforms[0] || '',
+        imageSource: imageSources[0] || ''
+      }));
+    } catch (error) {
       toast({
-        title: 'Content generation started',
-        status: 'success',
+        title: 'Error fetching settings',
+        status: 'error',
         duration: 3000,
       });
-    } catch (error) {
-      const apiError = error as ApiError;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.idea.trim()) {
       toast({
         title: 'Error',
-        description: apiError.message || 'An unknown error occurred',
+        description: 'Please enter an idea',
+        status: 'error',
+        duration: 3000,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await onSubmit(formData);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
         status: 'error',
         duration: 5000,
       });
@@ -67,7 +123,7 @@ export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -84,7 +140,7 @@ export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit
         <Box as="form" onSubmit={handleSubmit}>
           <VStack spacing={4}>
             <FormControl isRequired>
-              <FormLabel>Your Idea</FormLabel>
+              <FormLabel>Content Idea</FormLabel>
               <Textarea
                 name="idea"
                 value={formData.idea}
@@ -95,54 +151,55 @@ export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit
               />
             </FormControl>
 
-            <FormControl>
+            <FormControl isRequired>
               <FormLabel>AI Platform</FormLabel>
               <Select
                 name="aiPlatform"
                 value={formData.aiPlatform}
                 onChange={handleChange}
-                defaultValue="gemini"
+                isDisabled={!availablePlatforms.length}
               >
-                <option value="gemini">Google Gemini</option>
-                <option value="openai">OpenAI</option>
-                <option value="claude">Claude</option>
-                <option value="grok">Grok</option>
-                <option value="meta_ai">Meta AI</option>
+                {!availablePlatforms.length ? (
+                  <option value="">No AI platforms configured</option>
+                ) : (
+                  availablePlatforms.map(platform => (
+                    <option key={platform} value={platform}>
+                      {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                    </option>
+                  ))
+                )}
               </Select>
             </FormControl>
 
-            <FormControl>
+            <FormControl isRequired>
               <FormLabel>Image Source</FormLabel>
               <Select
                 name="imageSource"
                 value={formData.imageSource}
                 onChange={handleChange}
+                isDisabled={!availableImageSources.length}
               >
-                <option value="unsplash">Unsplash</option>
-                <option value="bing">Bing</option>
-                <option value="google">Google</option>
-                <option value="serpapi">SerpAPI</option>
+                {!availableImageSources.length ? (
+                  <option value="">No image sources configured</option>
+                ) : (
+                  availableImageSources.map(source => (
+                    <option key={source} value={source}>
+                      {source.charAt(0).toUpperCase() + source.slice(1)}
+                    </option>
+                  ))
+                )}
               </Select>
             </FormControl>
 
-            <FormControl>
-              <HStack spacing={3}>
-                <Switch
-                  id="generate-categories"
-                  name="generateCategories"
-                  isChecked={formData.generateCategories}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    generateCategories: e.target.checked
-                  }))}
-                />
-                <FormLabel htmlFor="generate-categories" mb="0" flex="1">
-                  Generate Categories
-                </FormLabel>
-              </HStack>
-              <FormHelperText mt={2}>
-                AI will suggest relevant categories for your content
-              </FormHelperText>
+            <FormControl display="flex" alignItems="center">
+              <FormLabel mb="0">Generate Categories</FormLabel>
+              <Switch
+                name="generateCategories"
+                isChecked={formData.generateCategories}
+                onChange={e => handleChange({
+                  target: { name: 'generateCategories', value: e.target.checked }
+                } as any)}
+              />
             </FormControl>
 
             <Button
@@ -152,6 +209,7 @@ export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit
               width="full"
               isLoading={isLoading}
               loadingText="Generating..."
+              isDisabled={!formData.aiPlatform || !formData.imageSource || !formData.idea.trim()}
             >
               Generate Content
             </Button>

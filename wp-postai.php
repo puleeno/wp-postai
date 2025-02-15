@@ -49,7 +49,12 @@ class WP_PostAI_Plugin {
     }
 
     public function enqueue_admin_scripts($hook) {
-        if (!in_array($hook, ['toplevel_page_wp-postai', 'wp-postai_page_wp-postai-settings', 'wp-postai_page_wp-postai-logs', 'wp-postai_page_wp-postai-batch'])) {
+        if (!in_array($hook, [
+            'toplevel_page_wp-postai',
+            'wp-postai_page_wp-postai-settings',
+            'wp-postai_page_wp-postai-logs',
+            'wp-postai_page_wp-postai-batch'
+        ])) {
             return;
         }
 
@@ -61,7 +66,7 @@ class WP_PostAI_Plugin {
             'wp-postai-admin',
             WP_POSTAI_PLUGIN_URL . 'dist/bundle.js',
             ['wp-element', 'wp-components'],
-            '1.0.0.4',
+            '1.0.0.5',
             true
         );
 
