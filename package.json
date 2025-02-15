@@ -1,0 +1,40 @@
+{
+  "name": "wp-postai",
+  "version": "1.0.0",
+  "description": "The AI content writer for WordPress",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack serve --mode development",
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "watch": "webpack --watch --mode development",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@chakra-ui/react": "^2.x",
+    "@emotion/react": "^11.x",
+    "@emotion/styled": "^11.x",
+    "framer-motion": "^6.x",
+    "react": "^18.x",
+    "react-dom": "^18.x",
+    "react-icons": "^4.x"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.x",
+    "@babel/preset-env": "^7.x",
+    "@babel/preset-react": "^7.x",
+    "@babel/preset-typescript": "^7.x",
+    "@types/react": "^18.x",
+    "@types/react-dom": "^18.x",
+    "babel-loader": "^8.x",
+    "css-loader": "^6.x",
+    "style-loader": "^3.x",
+    "ts-loader": "^9.x",
+    "typescript": "^4.x",
+    "webpack": "^5.x",
+    "webpack-cli": "^4.x",
+    "webpack-dev-server": "^4.x"
+  }
+}

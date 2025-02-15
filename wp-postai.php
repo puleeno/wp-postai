@@ -25,7 +25,45 @@ if (!defined('WP_POSTAI_PLUGIN_FILE')) {
 }
 
 class WP_PostAI_Plugin {
+    private $settings_api;
+
+    public function __construct() {
+        $this->settings_api = new \WPPostAI\Settings\SettingsAPI();
+    }
+
     public function boot() {
+        add_action('rest_api_init', [$this->settings_api, 'register_routes']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_scripts']);
+        add_action('admin_menu', [$this, 'add_admin_menu']);
+    }
+
+    public function enqueue_admin_scripts($hook) {
+        if ('toplevel_page_wp-postai' !== $hook) {
+            return;
+        }
+
+        wp_enqueue_script(
+            'wp-postai-admin',
+            plugins_url('dist/bundle.js', __FILE__),
+            ['wp-element'],
+            filemtime(plugin_dir_path(__FILE__) . 'dist/bundle.js'),
+            true
+        );
+    }
+
+    public function add_admin_menu() {
+        add_menu_page(
+            'WP PostAI',
+            'WP PostAI',
+            'manage_options',
+            'wp-postai',
+            [$this, 'render_admin_page'],
+            'dashicons-edit'
+        );
+    }
+
+    public function render_admin_page() {
+        echo '<div id="wp-postai-app"></div>';
     }
 }
 
