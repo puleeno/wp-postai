@@ -61,8 +61,46 @@ interface ApiError {
     message: string;
 }
 
+const defaultSettings: APISettings = {
+  ai_platforms: {
+    openai: {
+      api_key: '',
+      organization_id: ''
+    },
+    gemini: {
+      api_key: ''
+    },
+    claude: {
+      api_key: ''
+    },
+    grok: {
+      api_key: ''
+    },
+    meta_ai: {
+      api_key: '',
+      app_secret: ''
+    }
+  },
+  image_sources: {
+    unsplash: {
+      access_key: '',
+      secret_key: ''
+    },
+    bing: {
+      api_key: ''
+    },
+    google: {
+      api_key: '',
+      cx_id: ''
+    },
+    serpapi: {
+      api_key: ''
+    }
+  }
+};
+
 export const APISettingsForm: React.FC = () => {
-  const [settings, setSettings] = React.useState<APISettings | null>(null);
+  const [settings, setSettings] = React.useState<APISettings>(defaultSettings);
   const [isLoading, setIsLoading] = React.useState(false);
   const toast = useToast();
 
@@ -74,13 +112,27 @@ export const APISettingsForm: React.FC = () => {
     try {
       const response = await fetch('/wp-json/wp-postai/v1/settings');
       const data = await response.json();
-      setSettings(data);
+      // Merge received data with default settings to ensure all fields exist
+      setSettings({
+        ...defaultSettings,
+        ...data,
+        ai_platforms: {
+          ...defaultSettings.ai_platforms,
+          ...(data.ai_platforms || {})
+        },
+        image_sources: {
+          ...defaultSettings.image_sources,
+          ...(data.image_sources || {})
+        }
+      });
     } catch (error) {
       toast({
         title: 'Error fetching settings',
         status: 'error',
         duration: 3000,
       });
+      // Set default settings on error
+      setSettings(defaultSettings);
     }
   };
 
