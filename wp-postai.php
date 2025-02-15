@@ -49,7 +49,11 @@ class WP_PostAI_Plugin {
     }
 
     public function enqueue_admin_scripts($hook) {
-        if (!in_array($hook, ['toplevel_page_wp-postai', 'wp-postai_page_wp-postai-settings'])) {
+        if (!in_array($hook, [
+            'toplevel_page_wp-postai',
+            'wp-postai_page_wp-postai-settings',
+            'wp-postai_page_wp-postai-batch'
+        ])) {
             return;
         }
 
@@ -83,6 +87,24 @@ class WP_PostAI_Plugin {
 
         add_submenu_page(
             'wp-postai',
+            'Single Content',
+            'Single Content',
+            'manage_options',
+            'wp-postai',
+            [$this, 'render_admin_page']
+        );
+
+        add_submenu_page(
+            'wp-postai',
+            'Batch Content',
+            'Batch Content',
+            'manage_options',
+            'wp-postai-batch',
+            [$this, 'render_batch_page']
+        );
+
+        add_submenu_page(
+            'wp-postai',
             'Settings',
             'Settings',
             'manage_options',
@@ -97,6 +119,10 @@ class WP_PostAI_Plugin {
 
     public function render_settings_page() {
         echo '<div id="wp-postai-app" data-page="settings"></div>';
+    }
+
+    public function render_batch_page() {
+        echo '<div id="wp-postai-app" data-page="batch-content"></div>';
     }
 }
 

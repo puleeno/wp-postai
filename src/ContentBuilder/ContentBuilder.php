@@ -52,4 +52,25 @@ class ContentBuilder {
         // Logic to insert image HTML near section title
         return $content;
     }
+
+    public function buildBatch(array $ideas, bool $generateCategories = true): array {
+        $results = [];
+        foreach ($ideas as $idea) {
+            try {
+                $result = $this->build($idea, $generateCategories);
+                $results[] = [
+                    'idea' => $idea,
+                    'success' => true,
+                    'data' => $result
+                ];
+            } catch (\Exception $e) {
+                $results[] = [
+                    'idea' => $idea,
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ];
+            }
+        }
+        return $results;
+    }
 }

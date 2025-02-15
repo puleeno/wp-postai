@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ChakraProvider } from '@chakra-ui/react';
 import { ContentBuilderPage } from './pages/ContentBuilder';
+import { BatchContentPage } from './pages/BatchContent';
 import { SettingsPage } from './pages/Settings';
 
 const App = () => {
@@ -11,6 +12,7 @@ const App = () => {
     return (
         <ChakraProvider>
             {page === 'content-builder' && <ContentBuilderPage />}
+            {page === 'batch-content' && <BatchContentPage />}
             {page === 'settings' && <SettingsPage />}
         </ChakraProvider>
     );
