@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, useToast, VStack } from '@chakra-ui/react';
+import { Container, useToast, Grid, GridItem, useBreakpointValue } from '@chakra-ui/react';
 import { BatchContentForm, BatchContentData } from '../components/ContentBuilder/BatchContentForm';
 import { BatchList } from '../components/ContentBuilder/BatchList';
 
@@ -60,7 +60,7 @@ export const BatchContentPage: React.FC = () => {
         throw new Error(result.message || 'Failed to start batch generation');
       }
 
-      await fetchBatches(); // Refresh list after new batch
+      await fetchBatches();
 
       toast({
         title: 'Batch generation started',
@@ -80,10 +80,17 @@ export const BatchContentPage: React.FC = () => {
 
   return (
     <Container maxW="container.xl" py={8}>
-      <VStack spacing={6} align="stretch">
-        <BatchContentForm onSubmit={handleBatchSubmit} />
-        <BatchList batches={batches} isLoading={isLoading} />
-      </VStack>
+      <Grid
+        templateColumns={{ base: "1fr", md: "30% 70%" }}
+        gap={6}
+      >
+        <GridItem>
+          <BatchContentForm onSubmit={handleBatchSubmit} />
+        </GridItem>
+        <GridItem>
+          <BatchList batches={batches} isLoading={isLoading} />
+        </GridItem>
+      </Grid>
     </Container>
   );
 };
