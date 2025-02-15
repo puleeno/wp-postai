@@ -49,11 +49,7 @@ class WP_PostAI_Plugin {
     }
 
     public function enqueue_admin_scripts($hook) {
-        if (!in_array($hook, [
-            'toplevel_page_wp-postai',
-            'wp-postai_page_wp-postai-settings',
-            'wp-postai_page_wp-postai-batch'
-        ])) {
+        if (!in_array($hook, ['toplevel_page_wp-postai', 'wp-postai_page_wp-postai-settings', 'wp-postai_page_wp-postai-logs', 'wp-postai_page_wp-postai-batch'])) {
             return;
         }
 
@@ -65,7 +61,7 @@ class WP_PostAI_Plugin {
             'wp-postai-admin',
             WP_POSTAI_PLUGIN_URL . 'dist/bundle.js',
             ['wp-element', 'wp-components'],
-            filemtime(WP_POSTAI_PLUGIN_DIR . 'dist/bundle.js'),
+            '1.0.0.4',
             true
         );
 
@@ -111,6 +107,15 @@ class WP_PostAI_Plugin {
             'wp-postai-settings',
             [$this, 'render_settings_page']
         );
+
+        add_submenu_page(
+            'wp-postai',
+            'Logs',
+            'Logs',
+            'manage_options',
+            'wp-postai-logs',
+            [$this, 'render_logs_page']
+        );
     }
 
     public function render_admin_page() {
@@ -123,6 +128,10 @@ class WP_PostAI_Plugin {
 
     public function render_batch_page() {
         echo '<div id="wp-postai-app" data-page="batch-content"></div>';
+    }
+
+    public function render_logs_page() {
+        echo '<div id="wp-postai-app" data-page="logs"></div>';
     }
 }
 

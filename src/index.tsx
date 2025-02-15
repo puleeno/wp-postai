@@ -4,6 +4,7 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { ContentBuilderPage } from './pages/ContentBuilder';
 import { BatchContentPage } from './pages/BatchContent';
 import { SettingsPage } from './pages/Settings';
+import { LogsPage } from './pages/Logs';
 
 const App = () => {
     const container = document.getElementById('wp-postai-app');
@@ -14,6 +15,7 @@ const App = () => {
             {page === 'content-builder' && <ContentBuilderPage />}
             {page === 'batch-content' && <BatchContentPage />}
             {page === 'settings' && <SettingsPage />}
+            {page === 'logs' && <LogsPage />}
         </ChakraProvider>
     );
 };
