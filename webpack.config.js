@@ -11,8 +11,8 @@ module.exports = {
         rules: [
             {
                 test: /\.(ts|tsx)$/,
-                use: ['babel-loader', 'ts-loader'],
-                exclude: /node_modules/
+                exclude: /node_modules/,
+                use: 'babel-loader'
             },
             {
                 test: /\.css$/,
@@ -21,7 +21,11 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.js', '.jsx']
+        extensions: ['.tsx', '.ts', '.js', '.jsx'],
+        alias: {
+            'react': path.resolve('./node_modules/react'),
+            'react-dom': path.resolve('./node_modules/react-dom'),
+        }
     },
     devServer: {
         static: {
@@ -33,5 +37,8 @@ module.exports = {
         headers: {
             "Access-Control-Allow-Origin": "*",
         }
+    },
+    externals: {
+        'wp-element': 'wp.element'
     }
 };

@@ -25,6 +25,10 @@ interface ContentBuilderData {
   imageSource: string;
 }
 
+interface ApiError {
+  message: string;
+}
+
 export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit }) => {
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
@@ -35,7 +39,7 @@ export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit
 
     try {
       const formData = new FormData(e.target as HTMLFormElement);
-      const data = {
+      const data: ContentBuilderData = {
         idea: formData.get('idea') as string,
         aiPlatform: formData.get('aiPlatform') as string,
         imageSource: formData.get('imageSource') as string,
@@ -48,9 +52,10 @@ export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit
         duration: 3000,
       });
     } catch (error) {
+      const apiError = error as ApiError;
       toast({
         title: 'Error',
-        description: error.message,
+        description: apiError.message || 'An unknown error occurred',
         status: 'error',
         duration: 5000,
       });

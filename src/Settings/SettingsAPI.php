@@ -30,56 +30,29 @@ class SettingsAPI {
 
     public function update_settings($request) {
         $settings = $request->get_json_params();
-
-        // Validate and sanitize settings here
         $sanitized_settings = $this->sanitize_settings($settings);
-
         update_option($this->option_name, $sanitized_settings);
-
         return rest_ensure_response($sanitized_settings);
     }
 
     private function sanitize_settings($settings) {
-        // Add validation and sanitization logic here
         return $settings;
     }
 
     private function get_default_settings() {
         return [
             'ai_platforms' => [
-                'openai' => [
-                    'api_key' => '',
-                    'organization_id' => '',
-                ],
-                'gemini' => [
-                    'api_key' => '',
-                ],
-                'claude' => [
-                    'api_key' => '',
-                ],
-                'grok' => [
-                    'api_key' => '',
-                ],
-                'meta_ai' => [
-                    'api_key' => '',
-                    'app_secret' => '',
-                ],
+                'openai' => ['api_key' => '', 'organization_id' => ''],
+                'gemini' => ['api_key' => ''],
+                'claude' => ['api_key' => ''],
+                'grok' => ['api_key' => ''],
+                'meta_ai' => ['api_key' => '', 'app_secret' => ''],
             ],
             'image_sources' => [
-                'unsplash' => [
-                    'access_key' => '',
-                    'secret_key' => '',
-                ],
-                'bing' => [
-                    'api_key' => '',
-                ],
-                'google' => [
-                    'api_key' => '',
-                    'cx_id' => '',
-                ],
-                'serpapi' => [
-                    'api_key' => '',
-                ],
+                'unsplash' => ['access_key' => '', 'secret_key' => ''],
+                'bing' => ['api_key' => ''],
+                'google' => ['api_key' => '', 'cx_id' => ''],
+                'serpapi' => ['api_key' => ''],
             ],
         ];
     }

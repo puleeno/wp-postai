@@ -1,6 +1,20 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App';
+import { ChakraProvider } from '@chakra-ui/react';
+import { ContentBuilderPage } from './pages/ContentBuilder';
+import { SettingsPage } from './pages/Settings';
+
+const App = () => {
+    const container = document.getElementById('wp-postai-app');
+    const page = container?.getAttribute('data-page');
+
+    return (
+        <ChakraProvider>
+            {page === 'content-builder' && <ContentBuilderPage />}
+            {page === 'settings' && <SettingsPage />}
+        </ChakraProvider>
+    );
+};
 
 const container = document.getElementById('wp-postai-app');
 if (container) {

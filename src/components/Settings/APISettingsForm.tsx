@@ -56,6 +56,11 @@ interface APISettings {
   };
 }
 
+// Add type for error
+interface ApiError {
+    message: string;
+}
+
 export const APISettingsForm: React.FC = () => {
   const [settings, setSettings] = React.useState<APISettings | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -88,7 +93,7 @@ export const APISettingsForm: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-WP-Nonce': wpApiSettings.nonce,
+          'X-WP-Nonce': wpPostAI.nonce, // Use wpPostAI instead of wpApiSettings
         },
         body: JSON.stringify(settings),
       });
@@ -101,9 +106,10 @@ export const APISettingsForm: React.FC = () => {
         duration: 3000,
       });
     } catch (error) {
+      const apiError = error as ApiError;
       toast({
         title: 'Error saving settings',
-        description: error.message,
+        description: apiError.message || 'An unknown error occurred',
         status: 'error',
         duration: 3000,
       });
