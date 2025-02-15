@@ -31,6 +31,11 @@ interface ApiError {
 
 export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    idea: '',
+    aiPlatform: 'gemini',
+    imageSource: 'unsplash'
+  });
   const toast = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,14 +43,7 @@ export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit
     setIsLoading(true);
 
     try {
-      const formData = new FormData(e.target as HTMLFormElement);
-      const data: ContentBuilderData = {
-        idea: formData.get('idea') as string,
-        aiPlatform: formData.get('aiPlatform') as string,
-        imageSource: formData.get('imageSource') as string,
-      };
-
-      await onSubmit(data);
+      await onSubmit(formData);
       toast({
         title: 'Content generation started',
         status: 'success',
@@ -64,40 +62,60 @@ export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   return (
     <Card>
       <CardHeader>
         <Heading size="md">Generate Content</Heading>
       </CardHeader>
       <CardBody>
-        <form onSubmit={handleSubmit}>
+        <Box as="form" onSubmit={handleSubmit}>
           <VStack spacing={4}>
             <FormControl isRequired>
-              <FormLabel>Content Idea</FormLabel>
+              <FormLabel>Your Idea</FormLabel>
               <Textarea
                 name="idea"
-                placeholder="Enter your content idea or topic"
+                value={formData.idea}
+                onChange={handleChange}
+                placeholder="Enter your content idea here..."
+                size="lg"
                 rows={4}
               />
             </FormControl>
 
-            <FormControl isRequired>
+            <FormControl>
               <FormLabel>AI Platform</FormLabel>
-              <Select name="aiPlatform">
-                <option value="chatgpt">ChatGPT</option>
-                <option value="gemini">Gemini</option>
+              <Select
+                name="aiPlatform"
+                value={formData.aiPlatform}
+                onChange={handleChange}
+                defaultValue="gemini"
+              >
+                <option value="gemini">Google Gemini</option>
+                <option value="openai">OpenAI</option>
                 <option value="claude">Claude</option>
-                <option value="copilot">Copilot</option>
                 <option value="grok">Grok</option>
+                <option value="meta_ai">Meta AI</option>
               </Select>
             </FormControl>
 
-            <FormControl isRequired>
+            <FormControl>
               <FormLabel>Image Source</FormLabel>
-              <Select name="imageSource">
+              <Select
+                name="imageSource"
+                value={formData.imageSource}
+                onChange={handleChange}
+              >
                 <option value="unsplash">Unsplash</option>
-                <option value="bing">Bing Images</option>
-                <option value="google">Google Images</option>
+                <option value="bing">Bing</option>
+                <option value="google">Google</option>
                 <option value="serpapi">SerpAPI</option>
               </Select>
             </FormControl>
@@ -105,14 +123,15 @@ export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit
             <Button
               type="submit"
               colorScheme="blue"
+              size="lg"
+              width="full"
               isLoading={isLoading}
               loadingText="Generating..."
-              width="full"
             >
               Generate Content
             </Button>
           </VStack>
-        </form>
+        </Box>
       </CardBody>
     </Card>
   );
