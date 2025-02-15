@@ -13,6 +13,9 @@ import {
   CardBody,
   CardHeader,
   Heading,
+  Switch,
+  FormHelperText,
+  HStack,
 } from '@chakra-ui/react';
 
 interface ContentBuilderFormProps {
@@ -23,6 +26,7 @@ interface ContentBuilderData {
   idea: string;
   aiPlatform: string;
   imageSource: string;
+  generateCategories: boolean;
 }
 
 interface ApiError {
@@ -31,10 +35,11 @@ interface ApiError {
 
 export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ContentBuilderData>({
     idea: '',
     aiPlatform: 'gemini',
-    imageSource: 'unsplash'
+    imageSource: 'unsplash',
+    generateCategories: true
   });
   const toast = useToast();
 
@@ -118,6 +123,26 @@ export const ContentBuilderForm: React.FC<ContentBuilderFormProps> = ({ onSubmit
                 <option value="google">Google</option>
                 <option value="serpapi">SerpAPI</option>
               </Select>
+            </FormControl>
+
+            <FormControl>
+              <HStack spacing={3}>
+                <Switch
+                  id="generate-categories"
+                  name="generateCategories"
+                  isChecked={formData.generateCategories}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    generateCategories: e.target.checked
+                  }))}
+                />
+                <FormLabel htmlFor="generate-categories" mb="0" flex="1">
+                  Generate Categories
+                </FormLabel>
+              </HStack>
+              <FormHelperText mt={2}>
+                AI will suggest relevant categories for your content
+              </FormHelperText>
             </FormControl>
 
             <Button

@@ -13,7 +13,7 @@ class ContentBuilder {
         $this->imageRepository = $imageRepository;
     }
 
-    public function build(string $idea): array {
+    public function build(string $idea, bool $generateCategories = true): array {
         // Step 1: Generate outline
         $outline = $this->aiAdapter->generateOutline($idea);
 
@@ -23,10 +23,17 @@ class ContentBuilder {
         // Step 3: Process images
         $contentWithImages = $this->processImages($content, $outline);
 
-        return [
+        $result = [
             'outline' => $outline,
-            'content' => $contentWithImages
+            'content' => $contentWithImages,
         ];
+
+        // Generate categories if requested
+        if ($generateCategories) {
+            $result['categories'] = $this->aiAdapter->suggestCategories($idea, $outline);
+        }
+
+        return $result;
     }
 
     private function processImages(string $content, array $outline): string {
